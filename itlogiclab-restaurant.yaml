@@ -1,0 +1,203 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: 
+  labels: 
+    app:  order-deployment
+  name: order-deployment
+spec: 
+   replicas: 1
+   selector: 
+     matchLabels: 
+       app: order-container
+   template:
+     metadata:
+       labels: 
+          app: order-container
+     spec:
+       containers:
+         - name: order-service
+           image: com.itlogiclab.restaurant.system/order.service:0.0.1
+           imagePullPolicy: IfNotPresent
+           env: 
+             - name: SPRING_DATASOURCE_URL
+               value: "jdbc:postgresql://localhost:5432/postgres?currentSchema=order&binaryTransfer=true&reWriteBatchedInserts=true&stringtype=unspecified"
+             - name: KAFKA-CONFIG_BOOTSTRAP-SERVERS
+               value: "local-confluent-kafka-cp-kafka-headless:9092"
+             - name: KAFKA-CONFIG_SCHEMA-REGISTRY-URL
+               value: "http://local-confluent-kafka-cpschema-registry:8081"
+           resources: 
+                limits: 
+                  cpu: "500m"
+                  memory: "1024Mi"
+                requests: 
+                  cpu: "200m" 
+                  memory: "256Mi"
+---
+apiVersion: v1
+kind: Service
+metadata: 
+  labels:
+    app: order-service
+  name: order-service
+spec: 
+  selector: 
+    app: order-deployment
+  ports: 
+   - name: order-svc-port
+     port: 8081
+     protocol: TCP
+  type: LoadBalancer
+  
+---
+#Payment Definitions
+apiVersion: apps/v1
+kind: Deployment
+metadata: 
+  labels: 
+    app:  payment-deployment
+  name: payment-deployment
+spec: 
+   replicas: 1
+   selector: 
+     matchLabels: 
+       app: payment-container
+   template:
+     metadata:
+       labels: 
+          app: payment-container
+     spec:
+       containers:
+         - name: payment-service
+           image: com.itlogiclab.restaurant.system/payment.service:0.0.1
+           env: 
+             - name: SPRING_DATASOURCE_URL
+               value: "jdbc:postgresql://localhost:5432/postgres?currentSchema=payment&binaryTransfer=true&reWriteBatchedInserts=true&stringtype=unspecified"
+             - name: KAFKA-CONFIG_BOOTSTRAP-SERVERS
+               value: "local-confluent-kafka-cp-kafka-headless:9092"
+             - name: KAFKA-CONFIG_SCHEMA-REGISTRY-URL
+               value: "http://local-confluent-kafka-cpschema-registry:8081"
+           resources: 
+                limits: 
+                  cpu: "500m"
+                  memory: "1Gi"
+                requests: 
+                  cpu: "200m" 
+                  memory: "256Mi"
+---
+apiVersion: v1
+kind: Service
+metadata: 
+  labels:
+    app: payment-service
+  name: payment-service
+spec: 
+  selector: 
+    app: payment-deployment
+  ports: 
+   - name: payment-svc-port
+     port: 8082
+     protocol: TCP
+  type: LoadBalancer
+  
+---
+#Payment Definitions
+apiVersion: apps/v1
+kind: Deployment
+metadata: 
+  labels: 
+    app:  restaurant-deployment
+  name: restaurant-deployment
+spec: 
+   replicas: 1
+   selector: 
+     matchLabels: 
+       app: restaurant-container
+   template:
+     metadata:
+       labels: 
+          app: restaurant-container
+     spec:
+       containers:
+         - name: restaurant-service
+           image: com.itlogiclab.restaurant.system/restaurant.service:0.0.1
+           env: 
+             - name: SPRING_DATASOURCE_URL
+               value: "jdbc:postgresql://localhost:5432/postgres?currentSchema=restaurant&binaryTransfer=true&reWriteBatchedInserts=true&stringtype=unspecified"
+             - name: KAFKA-CONFIG_BOOTSTRAP-SERVERS
+               value: "local-confluent-kafka-cp-kafka-headless:9092"
+             - name: KAFKA-CONFIG_SCHEMA-REGISTRY-URL
+               value: "http://local-confluent-kafka-cpschema-registry:8081"
+           resources: 
+                limits: 
+                  cpu: "500m"
+                  memory: "1Gi"
+                requests: 
+                  cpu: "200m" 
+                  memory: "256Mi"
+---
+apiVersion: v1
+kind: Service
+metadata: 
+  labels:
+    app: restaurant-service
+  name: restaurant-service
+spec: 
+  selector: 
+    app: restaurant-deployment
+  ports: 
+   - name: restaurant-svc-port
+     port: 8083
+     protocol: TCP
+  type: LoadBalancer
+  
+---
+#Payment Definitions
+apiVersion: apps/v1
+kind: Deployment
+metadata: 
+  labels: 
+    app:  customer-deployment
+  name: customer-deployment
+spec: 
+   replicas: 1
+   selector: 
+     matchLabels: 
+       app: customer-container
+   template:
+     metadata:
+       labels: 
+          app: customer-container
+     spec:
+       containers:
+         - name: customer-service
+           image: com.itlogiclab.restaurant.system/customer.service:0.0.1
+           env: 
+             - name: SPRING_DATASOURCE_URL
+               value: "jdbc:postgresql://localhost:5432/postgres?currentSchema=customer&binaryTransfer=true&reWriteBatchedInserts=true&stringtype=unspecified"
+             - name: KAFKA-CONFIG_BOOTSTRAP-SERVERS
+               value: "local-confluent-kafka-cp-kafka-headless:9092"
+             - name: KAFKA-CONFIG_SCHEMA-REGISTRY-URL
+               value: "http://local-confluent-kafka-cpschema-registry:8081"
+           resources: 
+                limits: 
+                  cpu: "500m"
+                  memory: "1Gi"
+                requests: 
+                  cpu: "200m" 
+                  memory: "256Mi"
+---
+apiVersion: v1
+kind: Service
+metadata: 
+  labels:
+    app: customer-service
+  name: customer-service
+spec: 
+  selector: 
+    app: customer-deployment
+  ports: 
+   - name: customer-svc-port
+     port: 8084
+     protocol: TCP
+  type: LoadBalancer
+       

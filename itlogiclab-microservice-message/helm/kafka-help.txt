@@ -1,0 +1,105 @@
+pandeych445@Chandans-MacBook-Pro itlogiclab-restaurant-infra % helm install itlogiclab-kafka-cluster helm/cp-helm-charts --version 0.6.0
+NAME: itlogiclab-kafka-cluster
+LAST DEPLOYED: Sat Dec 30 18:15:36 2023
+NAMESPACE: default
+STATUS: deployed
+REVISION: 1
+NOTES:
+## ------------------------------------------------------
+## Zookeeper
+## ------------------------------------------------------
+Connection string for Confluent Kafka:
+  itlogiclab-kafka-cluster-cp-zookeeper-0.itlogiclab-kafka-cluster-cp-zookeeper-headless:2181,itlogiclab-kafka-cluster-cp-zookeeper-1.itlogiclab-kafka-cluster-cp-zookeeper-headless:2181,...
+
+To connect from a client pod:
+
+1. Deploy a zookeeper client pod with configuration:
+
+    apiVersion: v1
+    kind: Pod
+    metadata:
+      name: zookeeper-client
+      namespace: default
+    spec:
+      containers:
+      - name: zookeeper-client
+        image: confluentinc/cp-zookeeper:6.1.0
+        command:
+          - sh
+          - -c
+          - "exec tail -f /dev/null"
+
+2. Log into the Pod
+
+  kubectl exec -it zookeeper-client -- /bin/bash
+
+3. Use zookeeper-shell to connect in the zookeeper-client Pod:
+
+  zookeeper-shell itlogiclab-kafka-cluster-cp-zookeeper:2181
+
+4. Explore with zookeeper commands, for example:
+
+  # Gives the list of active brokers
+  ls /brokers/ids
+
+  # Gives the list of topics
+  ls /brokers/topics
+
+  # Gives more detailed information of the broker id '0'
+  get /brokers/ids/0## ------------------------------------------------------
+## Kafka
+## ------------------------------------------------------
+To connect from a client pod:
+
+1. Deploy a kafka client pod with configuration:
+
+    apiVersion: v1
+    kind: Pod
+    metadata:
+      name: kafka-client
+      namespace: default
+    spec:
+      containers:
+      - name: kafka-client
+        image: confluentinc/cp-enterprise-kafka:6.1.0
+        command:
+          - sh
+          - -c
+          - "exec tail -f /dev/null"
+
+2. Log into the Pod
+
+  kubectl exec -it kafka-client -- /bin/bash
+
+3. Explore with kafka commands:
+
+  # Create the topic
+  kafka-topics --zookeeper itlogiclab-kafka-cluster-cp-zookeeper-headless:2181 --topic itlogiclab-kafka-cluster-topic --create --partitions 1 --replication-factor 1 --if-not-exists
+
+  # Create a message
+  MESSAGE="`date -u`"
+
+  # Produce a test message to the topic
+  echo "$MESSAGE" | kafka-console-producer --broker-list itlogiclab-kafka-cluster-cp-kafka-headless:9092 --topic itlogiclab-kafka-cluster-topic
+
+  # Consume a test message from the topic
+  kafka-console-consumer --bootstrap-server itlogiclab-kafka-cluster-cp-kafka-headless:9092 --topic itlogiclab-kafka-cluster-topic --from-beginning --timeout-ms 2000 --max-messages 1 | grep "$MESSAGE"
+pandeych445@Chandans-MacBook-Pro itlogiclab-restaurant-infra %
+pandeych445@Chandans-MacBook-Pro itlogiclab-restaurant-infra %
+pandeych445@Chandans-MacBook-Pro itlogiclab-restaurant-infra %
+pandeych445@Chandans-MacBook-Pro itlogiclab-restaurant-infra %
+pandeych445@Chandans-MacBook-Pro itlogiclab-restaurant-infra %
+pandeych445@Chandans-MacBook-Pro itlogiclab-restaurant-infra %
+pandeych445@Chandans-MacBook-Pro itlogiclab-restaurant-infra %
+pandeych445@Chandans-MacBook-Pro itlogiclab-restaurant-infra %
+pandeych445@Chandans-MacBook-Pro itlogiclab-restaurant-infra % kga
+zsh: command not found: kga
+pandeych445@Chandans-MacBook-Pro itlogiclab-restaurant-infra % kubectl get all
+NAME                                                              READY   STATUS              RESTARTS   AGE
+pod/itlogiclab-kafka-cluster-cp-control-center-7984579f45-dwg88   1/1     Running             0          10s
+pod/itlogiclab-kafka-cluster-cp-kafka-0                           2/2     Running             0          10s
+pod/itlogiclab-kafka-cluster-cp-kafka-1                           0/2     ContainerCreating   0          5s
+pod/itlogiclab-kafka-cluster-cp-kafka-connect-6c5cbcc979-l62d6    2/2     Running             0          10s
+pod/itlogiclab-kafka-cluster-cp-kafka-rest-668b69598-wlmz5        2/2     Running             0          10s
+pod/itlogiclab-kafka-cluster-cp-ksql-server-864fcfcb47-nk2nv      2/2     Running             0          10s
+pod/itlogiclab-kafka-cluster-cp-schema-registry-586587f99-wq82w   2/2     Running             0          10s
